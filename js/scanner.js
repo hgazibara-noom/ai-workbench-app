@@ -37,9 +37,9 @@ function getPathSegments(path) {
  * - projects/{name}/: 'features' dir and 'overview.md' file
  * - projects/{name}/features/: any feature directory
  * - features/ (root level): any feature directory
- * - */features/{name}/: 'feature.md' file and 'agents' directory
- * - */agents/: any agent directory
- * - */agents/{name}/: 'task-instructions.md' and 'status.md' files
+ * - /features/{name}/: 'feature.md' file and 'agents' directory
+ * - /agents/: any agent directory
+ * - /agents/{name}/: 'task-instructions.md' and 'status.md' files
  * 
  * @param {string} entryName - Name of the entry
  * @param {string} entryKind - 'file' or 'directory'
@@ -138,7 +138,7 @@ function isFeatureFolder(segments) {
 
 /**
  * Checks if the path represents an agents folder
- * Pattern: */features/{name}/agents or features/{name}/agents
+ * Pattern: /features/{name}/agents or features/{name}/agents
  * @param {string[]} segments - Path segments
  * @returns {boolean}
  */
@@ -165,7 +165,7 @@ function isAgentsFolder(segments) {
 
 /**
  * Checks if the path represents an agent folder
- * Pattern: */agents/{name}
+ * Pattern: /agents/{name}
  * @param {string[]} segments - Path segments
  * @returns {boolean}
  */

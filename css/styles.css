@@ -1,0 +1,462 @@
+/* AI Workbench - Folder Structure Visualizer */
+/* Dark Theme Styling (Catppuccin-inspired) */
+
+/* ===========================
+   CSS Custom Properties
+   =========================== */
+:root {
+    /* Background colors */
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #2a2a3e;
+    --bg-tertiary: #313244;
+    
+    /* Text colors */
+    --text-primary: #cdd6f4;
+    --text-muted: #6c7086;
+    --text-bright: #f5f5f5;
+    
+    /* Accent colors */
+    --accent: #89b4fa;
+    --accent-hover: #b4befe;
+    
+    /* Status badge colors */
+    --status-completed: #a6e3a1;
+    --status-blocked: #f38ba8;
+    --status-in-progress: #89b4fa;
+    --status-not-started: #6c7086;
+    
+    /* Borders and dividers */
+    --border-color: #45475a;
+    --divider-color: #313244;
+    
+    /* Sizing */
+    --header-height: 60px;
+    --tree-panel-width: 300px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    
+    /* Typography */
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
+/* ===========================
+   Base Reset & Styles
+   =========================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===========================
+   Header Styles
+   =========================== */
+#header {
+    height: var(--header-height);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-lg);
+    gap: var(--spacing-lg);
+    flex-shrink: 0;
+}
+
+.app-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    white-space: nowrap;
+}
+
+.workspace-path {
+    flex: 1;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workspace-path.active {
+    color: var(--accent);
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+/* ===========================
+   Button Styles
+   =========================== */
+.btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), 
+                opacity var(--transition-fast),
+                transform var(--transition-fast);
+    white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    color: var(--bg-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--border-color);
+}
+
+/* ===========================
+   Main Layout
+   =========================== */
+#main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* ===========================
+   Tree Panel Styles
+   =========================== */
+#tree-panel {
+    width: var(--tree-panel-width);
+    min-width: var(--tree-panel-width);
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: var(--spacing-md);
+}
+
+/* Custom scrollbar for tree panel */
+#tree-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+#tree-panel::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+#tree-panel::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+#tree-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ===========================
+   Content Panel Styles
+   =========================== */
+#content-panel {
+    flex: 1;
+    overflow: auto;
+    padding: var(--spacing-md);
+    background-color: var(--bg-primary);
+}
+
+/* Custom scrollbar for content panel */
+#content-panel::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+#content-panel::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+#content-panel::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
+}
+
+#content-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ===========================
+   Placeholder Text
+   =========================== */
+.placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+/* ===========================
+   Loading & Error States
+   =========================== */
+.loading {
+    color: var(--accent);
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.loading::before {
+    content: '⏳ ';
+}
+
+.error {
+    color: var(--status-blocked);
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.error::before {
+    content: '❌ ';
+}
+
+/* ===========================
+   Tree View Styles
+   =========================== */
+.tree-root {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tree-children {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    padding-left: var(--spacing-md);
+    overflow: hidden;
+    max-height: 1000px;
+    transition: max-height var(--transition-normal), 
+                opacity var(--transition-normal);
+}
+
+.tree-children.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+.tree-node {
+    user-select: none;
+}
+
+.tree-node > .node-row {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    gap: var(--spacing-xs);
+}
+
+.tree-node > .node-row:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.tree-node.selected > .node-row {
+    background-color: var(--bg-tertiary);
+    outline: 1px solid var(--accent);
+}
+
+.node-toggle {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.node-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.node-toggle.hidden {
+    visibility: hidden;
+}
+
+.node-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.node-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.875rem;
+}
+
+.tree-file .node-name {
+    color: var(--text-primary);
+}
+
+.tree-directory .node-name {
+    color: var(--text-bright);
+    font-weight: 500;
+}
+
+/* ===========================
+   Status Badge Styles
+   =========================== */
+.status-badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-left: var(--spacing-sm);
+}
+
+.status-completed {
+    background-color: var(--status-completed);
+    color: var(--bg-primary);
+}
+
+.status-blocked {
+    background-color: var(--status-blocked);
+    color: var(--bg-primary);
+}
+
+.status-in-progress {
+    background-color: var(--status-in-progress);
+    color: var(--bg-primary);
+}
+
+.status-not-started {
+    background-color: var(--status-not-started);
+    color: var(--bg-primary);
+}
+
+/* ===========================
+   Content Display Styles
+   =========================== */
+.content-header {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-radius: 6px 6px 0 0;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.content-filename {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.content-body {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 6px 6px;
+    padding: var(--spacing-md);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    max-height: calc(100vh - var(--header-height) - 100px);
+    overflow-y: auto;
+}
+
+/* ===========================
+   Animations
+   =========================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.tree-root {
+    animation: fadeIn var(--transition-normal);
+}
+
+/* ===========================
+   Responsive Adjustments
+   =========================== */
+@media (max-width: 800px) {
+    :root {
+        --tree-panel-width: 250px;
+    }
+    
+    .app-title {
+        font-size: 1rem;
+    }
+    
+    .workspace-path {
+        display: none;
+    }
+}

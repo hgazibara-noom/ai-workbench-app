@@ -208,9 +208,13 @@ function isMarkdownFile(fileName) {
     return fileName.toLowerCase().endsWith('.md');
 }
 
+// Track if marked.js has been configured
+let markedConfigured = false;
+
 /**
  * Configures marked.js for GFM with external link handling
- * @returns {boolean} - True if marked.js was configured successfully
+ * Only configures once to avoid issues with multiple marked.use() calls
+ * @returns {boolean} - True if marked.js is available and configured
  */
 function configureMarked() {
     if (typeof marked === 'undefined') {
@@ -218,25 +222,29 @@ function configureMarked() {
         return false;
     }
     
+    if (markedConfigured) {
+        return true;
+    }
+    
     marked.use({
         gfm: true,
         breaks: true
     });
     
-    const renderer = new marked.Renderer();
-    const originalLink = renderer.link.bind(renderer);
-    
-    renderer.link = function(href, title, text) {
-        const isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
-        let html = originalLink(href, title, text);
-        if (isExternal) {
-            html = html.replace('<a ', '<a target="_blank" rel="noopener noreferrer" ');
-        }
-        return html;
-    };
-    
-    marked.use({ renderer });
+    markedConfigured = true;
     return true;
+}
+
+/**
+ * Post-processes HTML to add target="_blank" to external links
+ * @param {string} html - The rendered HTML
+ * @returns {string} - The processed HTML with external link attributes
+ */
+function processExternalLinks(html) {
+    return html.replace(
+        /<a href="(https?:\/\/[^"]+)"/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer"'
+    );
 }
 
 /**
@@ -277,9 +285,10 @@ function displayRawContent(content, fileName, container) {
 function displayMarkdownContent(content, fileName, container) {
     configureMarked();
     
-    const renderedHtml = typeof marked !== 'undefined' 
-        ? marked.parse(content) 
-        : '<p class="error">Markdown parser not available</p>';
+    let renderedHtml = '<p class="error">Markdown parser not available</p>';
+    if (typeof marked !== 'undefined') {
+        renderedHtml = processExternalLinks(marked.parse(content));
+    }
     
     container.innerHTML = `
         <header class="content-header">

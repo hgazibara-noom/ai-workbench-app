@@ -200,18 +200,108 @@ async function addStatusBadgeAsync(row, node) {
 }
 
 /**
+ * Checks if filename is a Markdown file
+ * @param {string} fileName - The file name to check
+ * @returns {boolean} - True if this is a Markdown file
+ */
+function isMarkdownFile(fileName) {
+    return fileName.toLowerCase().endsWith('.md');
+}
+
+/**
+ * Configures marked.js for GFM with external link handling
+ * @returns {boolean} - True if marked.js was configured successfully
+ */
+function configureMarked() {
+    if (typeof marked === 'undefined') {
+        console.warn('marked.js not loaded');
+        return false;
+    }
+    
+    marked.use({
+        gfm: true,
+        breaks: true
+    });
+    
+    const renderer = new marked.Renderer();
+    const originalLink = renderer.link.bind(renderer);
+    
+    renderer.link = function(href, title, text) {
+        const isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
+        let html = originalLink(href, title, text);
+        if (isExternal) {
+            html = html.replace('<a ', '<a target="_blank" rel="noopener noreferrer" ');
+        }
+        return html;
+    };
+    
+    marked.use({ renderer });
+    return true;
+}
+
+/**
  * Displays file content in the content panel
  * @param {string} content - The file content to display
  * @param {string} fileName - The name of the file
  * @param {HTMLElement} container - The container element to display in
  */
 export function displayContent(content, fileName, container) {
+    if (isMarkdownFile(fileName)) {
+        displayMarkdownContent(content, fileName, container);
+    } else {
+        displayRawContent(content, fileName, container);
+    }
+}
+
+/**
+ * Displays raw file content (non-Markdown files)
+ * @param {string} content - The file content to display
+ * @param {string} fileName - The name of the file
+ * @param {HTMLElement} container - The container element to display in
+ */
+function displayRawContent(content, fileName, container) {
     container.innerHTML = `
         <header class="content-header">
             <span class="content-filename">${escapeHtml(fileName)}</span>
         </header>
         <pre class="content-body">${escapeHtml(content)}</pre>
     `;
+}
+
+/**
+ * Displays Markdown file content with toggle for split view preview
+ * @param {string} content - The file content to display
+ * @param {string} fileName - The name of the file
+ * @param {HTMLElement} container - The container element to display in
+ */
+function displayMarkdownContent(content, fileName, container) {
+    configureMarked();
+    
+    const renderedHtml = typeof marked !== 'undefined' 
+        ? marked.parse(content) 
+        : '<p class="error">Markdown parser not available</p>';
+    
+    container.innerHTML = `
+        <header class="content-header">
+            <span class="content-filename">${escapeHtml(fileName)}</span>
+            <button class="content-toggle" title="Toggle Preview">
+                <span class="toggle-icon">◧</span> Preview
+            </button>
+        </header>
+        <div class="content-split">
+            <pre class="content-body content-raw">${escapeHtml(content)}</pre>
+            <div class="content-preview markdown-body">${renderedHtml}</div>
+        </div>
+    `;
+    
+    // Add toggle functionality
+    const toggleBtn = container.querySelector('.content-toggle');
+    const splitContainer = container.querySelector('.content-split');
+    
+    toggleBtn.addEventListener('click', () => {
+        toggleBtn.classList.toggle('active');
+        splitContainer.classList.toggle('split-active');
+    });
 }
 
 /**

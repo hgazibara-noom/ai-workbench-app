@@ -89,6 +89,13 @@ async function refresh() {
         // Scan the directory structure
         const structure = await scanDirectory(currentDirHandle);
         
+        // Check if structure has any children
+        if (structure.children.length === 0) {
+            treePanel.innerHTML = '<p class="placeholder">No recognized structure found. ' +
+                'Expected folders: <code>projects/</code> or <code>features/</code></p>';
+            return;
+        }
+        
         // Render the tree view
         renderTree(structure, treePanel, handleFileClick);
         

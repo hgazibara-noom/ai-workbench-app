@@ -18,6 +18,19 @@ class AnalyzeAgentError(Exception):
 _sessions: Dict[str, AnalysisSession] = {}
 _processes: Dict[str, asyncio.subprocess.Process] = {}
 
+# Output callbacks that can be updated after session starts (e.g., when WebSocket connects)
+_output_callbacks: Dict[str, Callable[[str], None]] = {}
+
+
+def set_output_callback(session_id: str, callback: Callable[[str], None]) -> None:
+    """Set or update the output callback for a session."""
+    _output_callbacks[session_id] = callback
+
+
+def get_output_callback(session_id: str) -> Optional[Callable[[str], None]]:
+    """Get the current output callback for a session."""
+    return _output_callbacks.get(session_id)
+
 
 def get_session(session_id: str) -> Optional[AnalysisSession]:
     """Get session by ID."""
@@ -96,18 +109,28 @@ async def start_analysis(
 
 
 async def _read_output(session_id: str, on_output: Callable[[str], None]):
-    """Read process output and stream to callback."""
+    """Read process output and stream to callback.
+    
+    Note: The callback is looked up dynamically via _output_callbacks to support
+    WebSocket connections that are established after the analysis starts.
+    """
     process = _processes.get(session_id)
     session = _sessions.get(session_id)
     
     if not process or not session:
         return
     
+    async def call_output(text: str):
+        """Call the current output callback (may be updated dynamically)."""
+        # Try dynamic callback first (from WebSocket), fall back to original
+        callback = _output_callbacks.get(session_id, on_output)
+        await callback(text)
+    
     try:
         async for line in process.stdout:
             decoded = line.decode('utf-8')
             session.output_buffer += decoded
-            await on_output(decoded)
+            await call_output(decoded)
         
         # Process completed
         await process.wait()
@@ -118,17 +141,17 @@ async def _read_output(session_id: str, on_output: Callable[[str], None]):
             if questions:
                 session.questions = questions
                 session.status = AnalysisStatus.AWAITING_ANSWERS
-                await on_output(f"\n__QUESTIONS_READY__:{len(questions)}\n")
+                await call_output(f"\n__QUESTIONS_READY__:{len(questions)}\n")
             else:
                 session.status = AnalysisStatus.COMPLETE
-                await on_output("\n__ANALYSIS_COMPLETE__\n")
+                await call_output("\n__ANALYSIS_COMPLETE__\n")
         else:
             session.status = AnalysisStatus.ERROR
-            await on_output(f"\n__ERROR__:Process exited with code {process.returncode}\n")
+            await call_output(f"\n__ERROR__:Process exited with code {process.returncode}\n")
             
     except Exception as e:
         session.status = AnalysisStatus.ERROR
-        await on_output(f"\n__ERROR__:{str(e)}\n")
+        await call_output(f"\n__ERROR__:{str(e)}\n")
 
 
 async def submit_answers(
@@ -191,30 +214,39 @@ Save both files to the feature folder at {session.feature_path}/
 
 
 async def _read_final_output(session_id: str, on_output: Callable[[str], None]):
-    """Read final output after answers submitted."""
+    """Read final output after answers submitted.
+    
+    Note: The callback is looked up dynamically via _output_callbacks to support
+    WebSocket connections.
+    """
     process = _processes.get(session_id)
     session = _sessions.get(session_id)
     
     if not process or not session:
         return
     
+    async def call_output(text: str):
+        """Call the current output callback (may be updated dynamically)."""
+        callback = _output_callbacks.get(session_id, on_output)
+        await callback(text)
+    
     try:
         async for line in process.stdout:
             decoded = line.decode('utf-8')
-            await on_output(decoded)
+            await call_output(decoded)
         
         await process.wait()
         
         if process.returncode == 0:
             session.status = AnalysisStatus.COMPLETE
-            await on_output("\n__ANALYSIS_COMPLETE__\n")
+            await call_output("\n__ANALYSIS_COMPLETE__\n")
         else:
             session.status = AnalysisStatus.ERROR
-            await on_output(f"\n__ERROR__:Process exited with code {process.returncode}\n")
+            await call_output(f"\n__ERROR__:Process exited with code {process.returncode}\n")
             
     except Exception as e:
         session.status = AnalysisStatus.ERROR
-        await on_output(f"\n__ERROR__:{str(e)}\n")
+        await call_output(f"\n__ERROR__:{str(e)}\n")
 
 
 async def cancel_analysis(session_id: str) -> bool:
@@ -234,6 +266,7 @@ async def cancel_analysis(session_id: str) -> bool:
     
     # Cleanup
     _processes.pop(session_id, None)
+    _output_callbacks.pop(session_id, None)
     
     return True
 

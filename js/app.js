@@ -4,6 +4,7 @@
 import { selectDirectory, scanDirectory, readFile, createFeatureDirectory, checkDirectoryExists } from './scanner.js';
 import { renderTree, displayContent } from './renderer.js';
 import { hasJiraLink, setCurrentFeature, showJiraModal } from './jira.js';
+import { initAnalysisPanel, showAnalysisPanel, connectAnalysisWebSocket, showAnalysisError } from './analyze.js';
 
 // Application state
 let currentDirHandle = null;
@@ -82,6 +83,14 @@ function init() {
                 closeCreateModal();
             }
         }
+    });
+    
+    // Initialize analysis panel
+    initAnalysisPanel();
+    
+    // Listen for refresh-tree events (from analysis panel on completion)
+    window.addEventListener('refresh-tree', async () => {
+        await refresh();
     });
 }
 
@@ -248,8 +257,54 @@ function showError(message) {
  * @param {Object} featureNode - The feature folder node that was clicked
  */
 async function handleAnalyzeClick(featureNode) {
-    console.log('Analyze clicked:', featureNode.path, featureNode.name);
-    // Full implementation in Agent 04
+    // Get the feature path relative to workspace
+    const featurePath = featureNode.path;
+    
+    // Show analysis panel with loading state
+    showAnalysisPanel(featureNode.name);
+    
+    // Mark button as analyzing (find the button by searching through the tree)
+    const allAnalyzeBtns = document.querySelectorAll('.node-analyze-btn');
+    allAnalyzeBtns.forEach(btn => {
+        // Check if this button's parent row contains the matching folder name
+        const row = btn.closest('.node-row');
+        const nameSpan = row?.querySelector('.node-name');
+        if (nameSpan && nameSpan.textContent === featureNode.name) {
+            btn.classList.add('analyzing');
+        }
+    });
+    
+    try {
+        // Note: We need the full workspace path. The File System Access API
+        // doesn't give us the full path, so we use a workaround via the backend.
+        const response = await fetch('/api/analyze/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                // Backend will need to resolve the workspace path
+                workspace_path: window.WORKSPACE_PATH || '/Users/hrvojegazibara/projects/ai-workbench/ai-workbench-workspace',
+                feature_path: featurePath
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Connect WebSocket for real-time updates
+        connectAnalysisWebSocket(data.session_id, featureNode);
+        
+    } catch (error) {
+        console.error('Failed to start analysis:', error);
+        showAnalysisError(`Failed to start analysis: ${error.message}`);
+        
+        // Remove analyzing state from buttons
+        document.querySelectorAll('.node-analyze-btn.analyzing').forEach(btn => {
+            btn.classList.remove('analyzing');
+        });
+    }
 }
 
 // ============================================================

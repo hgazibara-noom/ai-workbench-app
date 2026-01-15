@@ -391,6 +391,36 @@ body {
 }
 
 /* ===========================
+   Analyze Button Styles
+   =========================== */
+.node-analyze-btn {
+    opacity: 0;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-left: auto;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: opacity var(--transition-fast), 
+                background-color var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.node-row:hover .node-analyze-btn {
+    opacity: 1;
+}
+
+.node-analyze-btn:hover {
+    background: var(--accent);
+}
+
+.node-analyze-btn.analyzing {
+    opacity: 1;
+    background: var(--accent);
+}
+
+/* ===========================
    Content Display Styles
    =========================== */
 .content-header {

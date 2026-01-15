@@ -183,7 +183,7 @@ async function refresh() {
         }
         
         // Render the tree view
-        renderTree(structure, treePanel, handleFileClick);
+        renderTree(structure, treePanel, handleFileClick, handleAnalyzeClick);
         
     } catch (error) {
         console.error('Scan failed:', error);
@@ -241,6 +241,15 @@ async function handleFileClick(fileNode) {
  */
 function showError(message) {
     treePanel.innerHTML = `<p class="error">${message}</p>`;
+}
+
+/**
+ * Handle analyze button click on a feature folder
+ * @param {Object} featureNode - The feature folder node that was clicked
+ */
+async function handleAnalyzeClick(featureNode) {
+    console.log('Analyze clicked:', featureNode.path, featureNode.name);
+    // Full implementation in Agent 04
 }
 
 // ============================================================

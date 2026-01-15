@@ -2,7 +2,7 @@
 // Renders folder structure as interactive, collapsible tree view
 
 import { parseStatus, getStatusClass, getStatusText } from './status.js';
-import { readFile } from './scanner.js';
+import { readFile, writeFile } from './scanner.js';
 
 /**
  * Renders the tree structure to the DOM
@@ -252,10 +252,11 @@ function processExternalLinks(html) {
  * @param {string} content - The file content to display
  * @param {string} fileName - The name of the file
  * @param {HTMLElement} container - The container element to display in
+ * @param {FileSystemFileHandle} fileHandle - The file handle for editing
  */
-export function displayContent(content, fileName, container) {
+export function displayContent(content, fileName, container, fileHandle = null) {
     if (isMarkdownFile(fileName)) {
-        displayMarkdownContent(content, fileName, container);
+        displayMarkdownContent(content, fileName, container, fileHandle);
     } else {
         displayRawContent(content, fileName, container);
     }
@@ -277,12 +278,13 @@ function displayRawContent(content, fileName, container) {
 }
 
 /**
- * Displays Markdown file content with toggle for split view preview
+ * Displays Markdown file content with toggle for split view preview and edit button
  * @param {string} content - The file content to display
  * @param {string} fileName - The name of the file
  * @param {HTMLElement} container - The container element to display in
+ * @param {FileSystemFileHandle} fileHandle - The file handle for editing
  */
-function displayMarkdownContent(content, fileName, container) {
+function displayMarkdownContent(content, fileName, container, fileHandle) {
     configureMarked();
     
     let renderedHtml = '<p class="error">Markdown parser not available</p>';
@@ -293,9 +295,14 @@ function displayMarkdownContent(content, fileName, container) {
     container.innerHTML = `
         <header class="content-header">
             <span class="content-filename">${escapeHtml(fileName)}</span>
-            <button class="content-toggle" title="Toggle Preview">
-                <span class="toggle-icon">◧</span> Preview
-            </button>
+            <div class="content-actions">
+                <button class="content-edit-btn" title="Edit file">
+                    ✏️ Edit
+                </button>
+                <button class="content-toggle" title="Toggle Preview">
+                    <span class="toggle-icon">◧</span> Preview
+                </button>
+            </div>
         </header>
         <div class="content-split">
             <pre class="content-body content-raw">${escapeHtml(content)}</pre>
@@ -311,6 +318,113 @@ function displayMarkdownContent(content, fileName, container) {
         toggleBtn.classList.toggle('active');
         splitContainer.classList.toggle('split-active');
     });
+    
+    // Add edit functionality
+    const editBtn = container.querySelector('.content-edit-btn');
+    if (fileHandle) {
+        editBtn.addEventListener('click', () => {
+            enterEditMode(container, content, fileName, fileHandle);
+        });
+    } else {
+        editBtn.style.display = 'none';
+    }
+}
+
+// Track current edit state
+let currentEditState = null;
+
+/**
+ * Enters edit mode for a Markdown file
+ * @param {HTMLElement} container - The content panel container
+ * @param {string} content - Current file content
+ * @param {string} fileName - The file name
+ * @param {FileSystemFileHandle} fileHandle - The file handle for saving
+ */
+function enterEditMode(container, content, fileName, fileHandle) {
+    currentEditState = { container, fileName, fileHandle };
+    
+    container.innerHTML = `
+        <header class="content-header">
+            <span class="content-filename">${escapeHtml(fileName)}</span>
+            <span class="save-status"></span>
+            <button class="content-done-btn" title="Exit edit mode (Esc)">
+                ✓ Done
+            </button>
+        </header>
+        <textarea class="content-editor">${escapeHtml(content)}</textarea>
+    `;
+    
+    const textarea = container.querySelector('.content-editor');
+    const statusEl = container.querySelector('.save-status');
+    const doneBtn = container.querySelector('.content-done-btn');
+    
+    // Focus the textarea
+    textarea.focus();
+    
+    // Set up debounced auto-save
+    let saveTimeout = null;
+    textarea.addEventListener('input', () => {
+        statusEl.textContent = '';
+        statusEl.className = 'save-status';
+        
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveContent(textarea.value, fileHandle, statusEl);
+        }, 500);
+    });
+    
+    // Handle Done button
+    doneBtn.addEventListener('click', () => {
+        exitEditMode(textarea.value, fileName, fileHandle, container);
+    });
+    
+    // Handle Escape key
+    textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            exitEditMode(textarea.value, fileName, fileHandle, container);
+        }
+    });
+}
+
+/**
+ * Saves content to file with status feedback
+ * @param {string} content - Content to save
+ * @param {FileSystemFileHandle} fileHandle - File handle
+ * @param {HTMLElement} statusEl - Status element for feedback
+ */
+async function saveContent(content, fileHandle, statusEl) {
+    statusEl.textContent = 'Saving...';
+    statusEl.className = 'save-status saving';
+    
+    try {
+        await writeFile(fileHandle, content);
+        statusEl.textContent = 'Saved ✓';
+        statusEl.className = 'save-status saved';
+        
+        // Clear "Saved" message after 2 seconds
+        setTimeout(() => {
+            if (statusEl.textContent === 'Saved ✓') {
+                statusEl.textContent = '';
+            }
+        }, 2000);
+    } catch (error) {
+        console.error('Failed to save file:', error);
+        statusEl.textContent = 'Error saving';
+        statusEl.className = 'save-status error';
+    }
+}
+
+/**
+ * Exits edit mode and returns to view mode
+ * @param {string} content - Current editor content
+ * @param {string} fileName - The file name
+ * @param {FileSystemFileHandle} fileHandle - The file handle
+ * @param {HTMLElement} container - The container element
+ */
+function exitEditMode(content, fileName, fileHandle, container) {
+    currentEditState = null;
+    displayMarkdownContent(content, fileName, container, fileHandle);
 }
 
 /**

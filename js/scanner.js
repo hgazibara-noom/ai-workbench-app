@@ -246,3 +246,15 @@ export async function readFile(fileHandle) {
     const file = await fileHandle.getFile();
     return await file.text();
 }
+
+/**
+ * Writes content to a file using its handle
+ * @param {FileSystemFileHandle} fileHandle - The file handle to write to
+ * @param {string} content - The content to write
+ * @returns {Promise<void>}
+ */
+export async function writeFile(fileHandle, content) {
+    const writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+}

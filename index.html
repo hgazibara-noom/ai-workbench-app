@@ -13,6 +13,7 @@
         <div class="header-actions">
             <button id="btn-select" class="btn btn-primary">Select Workspace</button>
             <button id="btn-refresh" class="btn btn-secondary" disabled>Refresh</button>
+            <button id="btn-create-feature" class="btn btn-secondary" disabled>+ Feature</button>
         </div>
     </header>
     <main id="main">
@@ -25,5 +26,56 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="js/app.js"></script>
+
+    <!-- Create Feature Modal -->
+    <div id="create-feature-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Create New Feature</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </header>
+            <form id="create-feature-form" class="modal-body">
+                <fieldset class="form-group">
+                    <legend>Feature Type</legend>
+                    <label class="radio-label">
+                        <input type="radio" name="feature-type" value="standalone" checked>
+                        <span>Standalone Feature</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="feature-type" value="project">
+                        <span>Project Feature</span>
+                    </label>
+                </fieldset>
+                
+                <div class="form-group" id="project-select-group" style="display: none;">
+                    <label for="project-select">Project</label>
+                    <select id="project-select">
+                        <option value="">Select a project...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="feature-name-input">Feature Name</label>
+                    <input type="text" id="feature-name-input" 
+                           placeholder="my-feature-name" 
+                           maxlength="50"
+                           autocomplete="off">
+                    <span id="feature-name-error" class="field-error"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Location Preview</label>
+                    <code id="location-preview" class="location-preview">features/</code>
+                </div>
+            </form>
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-cancel-create">Cancel</button>
+                <button type="submit" form="create-feature-form" class="btn btn-primary" id="btn-submit-create" disabled>
+                    Create Feature
+                </button>
+            </footer>
+        </div>
+    </div>
 </body>
 </html>

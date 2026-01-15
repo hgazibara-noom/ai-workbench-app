@@ -5,6 +5,10 @@ let currentSessionId = null;
 let analysisWebSocket = null;
 let currentQuestions = [];
 
+// Draft persistence
+const DRAFT_KEY_PREFIX = 'analysis_draft_';
+let saveTimer = null;
+
 // DOM References (set in init)
 let analysisPanel, analysisTitle, analysisContent, analysisFooter;
 let btnCancelAnalysis, btnCloseAnalysis, btnSubmitAnswers;
@@ -54,6 +58,10 @@ export function hideAnalysisPanel() {
         analysisWebSocket.close();
         analysisWebSocket = null;
     }
+    
+    // Clear drafts on panel close
+    clearDrafts();
+    
     currentSessionId = null;
     currentQuestions = [];
     
@@ -161,12 +169,12 @@ function renderOutput(output) {
  * @param {Array} questions - Parsed questions
  */
 function renderQuestions(questions) {
-    analysisTitle.textContent = `📊 Analysis Complete - ${questions.length} Questions`;
+    analysisTitle.textContent = `📊 Questions (0/${questions.length} answered)`;
     btnCancelAnalysis.classList.add('hidden');
     analysisFooter.classList.remove('hidden');
     
     analysisContent.innerHTML = `
-        <p style="margin-bottom: var(--spacing-md); color: var(--text-muted);">
+        <p class="analysis-intro" style="margin-bottom: var(--spacing-md); color: var(--text-muted);">
             The following clarifications are needed:
         </p>
         <ul class="question-list">
@@ -185,11 +193,19 @@ function renderQuestions(questions) {
         </ul>
     `;
     
-    // Add input listeners for validation
+    setupQuestionListeners();
+    loadDrafts();
+}
+
+/**
+ * Set up event listeners for question inputs
+ */
+function setupQuestionListeners() {
     analysisContent.querySelectorAll('.question-input').forEach(input => {
         input.addEventListener('input', () => {
             updateQuestionStatus(input);
             validateAllAnswers();
+            saveDraftsDebounced();
         });
     });
 }
@@ -211,12 +227,15 @@ function updateQuestionStatus(input) {
 }
 
 /**
- * Validate all answers and update submit button
+ * Validate all answers and update submit button and progress indicator
  */
 function validateAllAnswers() {
     const inputs = analysisContent.querySelectorAll('.question-input');
-    const allAnswered = Array.from(inputs).every(input => input.value.trim().length > 0);
-    btnSubmitAnswers.disabled = !allAnswered;
+    const answered = Array.from(inputs).filter(i => i.value.trim().length > 0).length;
+    const total = inputs.length;
+    
+    analysisTitle.textContent = `📊 Questions (${answered}/${total} answered)`;
+    btnSubmitAnswers.disabled = answered < total;
 }
 
 /**
@@ -243,6 +262,9 @@ async function submitAnswers() {
             throw new Error('Failed to submit answers');
         }
         
+        // Clear drafts on successful submission
+        clearDrafts();
+        
         // Show processing state
         analysisContent.innerHTML = `
             <div class="analysis-loading">
@@ -257,6 +279,62 @@ async function submitAnswers() {
         btnSubmitAnswers.disabled = false;
         btnSubmitAnswers.textContent = 'Submit Answers';
         renderError('Failed to submit answers');
+    }
+}
+
+/**
+ * Debounced draft saving - waits 500ms after last input
+ */
+function saveDraftsDebounced() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveDrafts, 500);
+}
+
+/**
+ * Save current answers to localStorage
+ */
+function saveDrafts() {
+    if (!currentSessionId) return;
+    
+    const inputs = analysisContent.querySelectorAll('.question-input');
+    const drafts = {};
+    inputs.forEach(input => {
+        drafts[input.dataset.questionId] = input.value;
+    });
+    
+    localStorage.setItem(`${DRAFT_KEY_PREFIX}${currentSessionId}`, JSON.stringify(drafts));
+}
+
+/**
+ * Load saved drafts from localStorage
+ */
+function loadDrafts() {
+    if (!currentSessionId) return;
+    
+    const stored = localStorage.getItem(`${DRAFT_KEY_PREFIX}${currentSessionId}`);
+    if (!stored) return;
+    
+    try {
+        const drafts = JSON.parse(stored);
+        analysisContent.querySelectorAll('.question-input').forEach(input => {
+            const draft = drafts[input.dataset.questionId];
+            if (draft) {
+                input.value = draft;
+                updateQuestionStatus(input);
+            }
+        });
+        validateAllAnswers();
+    } catch (e) {
+        console.warn('Failed to load drafts:', e);
+    }
+}
+
+/**
+ * Clear drafts from localStorage
+ */
+function clearDrafts() {
+    if (currentSessionId) {
+        localStorage.removeItem(`${DRAFT_KEY_PREFIX}${currentSessionId}`);
     }
 }
 

@@ -200,6 +200,16 @@ body {
 }
 
 /* ===========================
+   Content Area Layout
+   =========================== */
+#content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ===========================
    Content Panel Styles
    =========================== */
 #content-panel {
@@ -207,6 +217,7 @@ body {
     overflow: auto;
     padding: var(--spacing-md);
     background-color: var(--bg-primary);
+    min-height: 200px;
 }
 
 /* Custom scrollbar for content panel */
@@ -1086,4 +1097,214 @@ fieldset.form-group {
 .jira-error-state .error-message {
     color: var(--status-blocked);
     margin: 0;
+}
+
+/* ===========================
+   Analysis Panel Styles
+   =========================== */
+#analysis-panel {
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    max-height: 40vh;
+    min-height: 150px;
+    overflow: hidden;
+}
+
+#analysis-panel.hidden {
+    display: none;
+}
+
+#analysis-panel.expanded {
+    max-height: 60vh;
+}
+
+.analysis-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.analysis-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-bright);
+}
+
+.analysis-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.btn-icon:hover {
+    color: var(--text-primary);
+}
+
+.analysis-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
+
+.analysis-footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.analysis-footer.hidden {
+    display: none;
+}
+
+/* Analysis Output Streaming */
+.analysis-output {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--text-primary);
+}
+
+.analysis-output .output-line {
+    margin: 2px 0;
+}
+
+.analysis-output .output-line.status {
+    color: var(--accent);
+}
+
+/* Question Form Styles */
+.question-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.question-item {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-primary);
+    border-radius: 6px;
+    border-left: 3px solid var(--border-color);
+}
+
+.question-item.answered {
+    border-left-color: var(--status-completed);
+}
+
+.question-item.unanswered {
+    border-left-color: var(--status-not-started);
+}
+
+.question-title {
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: var(--spacing-xs);
+}
+
+.question-context {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+}
+
+.question-input {
+    width: 100%;
+    min-height: 80px;
+    padding: var(--spacing-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    resize: vertical;
+}
+
+.question-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.question-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+    font-size: 0.75rem;
+}
+
+.question-status.answered {
+    color: var(--status-completed);
+}
+
+.question-status.unanswered {
+    color: var(--text-muted);
+}
+
+/* Success State */
+.analysis-success {
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.analysis-success .success-icon {
+    font-size: 3rem;
+    color: var(--status-completed);
+    margin-bottom: var(--spacing-md);
+}
+
+.analysis-success h4 {
+    color: var(--text-bright);
+    margin-bottom: var(--spacing-md);
+}
+
+.analysis-success ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.analysis-success li {
+    color: var(--text-primary);
+    margin: var(--spacing-xs) 0;
+}
+
+/* Loading Spinner */
+.analysis-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--accent);
+}
+
+.analysis-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }

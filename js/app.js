@@ -3,6 +3,7 @@
 
 import { selectDirectory, scanDirectory, readFile } from './scanner.js';
 import { renderTree, displayContent } from './renderer.js';
+import { hasJiraLink, setCurrentFeature, showJiraModal } from './jira.js';
 
 // Application state
 let currentDirHandle = null;
@@ -10,9 +11,13 @@ let currentDirHandle = null;
 // DOM element references
 const btnSelect = document.getElementById('btn-select');
 const btnRefresh = document.getElementById('btn-refresh');
+const btnCreateJira = document.getElementById('btn-create-jira');
 const workspacePath = document.getElementById('workspace-path');
 const treePanel = document.getElementById('tree-panel');
 const contentPanel = document.getElementById('content-panel');
+
+// Track current selected file for Jira button updates
+let currentFileNode = null;
 
 /**
  * Initialize the application
@@ -31,6 +36,42 @@ function init() {
     // Set up event listeners
     btnSelect.addEventListener('click', handleSelectWorkspace);
     btnRefresh.addEventListener('click', handleRefresh);
+    btnCreateJira.addEventListener('click', handleCreateJira);
+    
+    // Listen for feature updates (after Jira link is added)
+    window.addEventListener('feature-updated', handleFeatureUpdated);
+}
+
+/**
+ * Handle "Create Jira" button click
+ */
+function handleCreateJira() {
+    showJiraModal();
+}
+
+/**
+ * Handle feature-updated event (after Jira link is added)
+ */
+async function handleFeatureUpdated(event) {
+    // Re-read and re-display the current file to show updated content
+    if (currentFileNode && currentFileNode.handle) {
+        try {
+            const content = await readFile(currentFileNode.handle);
+            displayContent(content, currentFileNode.name, contentPanel, currentFileNode.handle);
+            
+            // Update button state - file now has Jira link
+            const jiraKey = hasJiraLink(content);
+            if (jiraKey) {
+                btnCreateJira.disabled = true;
+                btnCreateJira.title = `Already linked to ${jiraKey}`;
+            }
+            
+            // Update current feature context
+            setCurrentFeature(currentFileNode.handle, content, currentFileNode.path);
+        } catch (error) {
+            console.error('Failed to refresh file:', error);
+        }
+    }
 }
 
 /**
@@ -114,8 +155,31 @@ async function handleFileClick(fileNode) {
         // Show loading state in content panel
         contentPanel.innerHTML = '<p class="loading">Loading file...</p>';
         
+        // Store current file node for feature updates
+        currentFileNode = fileNode;
+        
         // Read the file content
         const content = await readFile(fileNode.handle);
+        
+        // Check if this is a feature.md file and update Jira button state
+        if (fileNode.name === 'feature.md') {
+            const existingJiraKey = hasJiraLink(content);
+            
+            if (existingJiraKey) {
+                btnCreateJira.disabled = true;
+                btnCreateJira.title = `Already linked to ${existingJiraKey}`;
+            } else {
+                btnCreateJira.disabled = false;
+                btnCreateJira.title = 'Create Jira ticket from this feature';
+            }
+            
+            // Set context for jira module
+            setCurrentFeature(fileNode.handle, content, fileNode.path);
+        } else {
+            btnCreateJira.disabled = true;
+            btnCreateJira.title = 'Select a feature.md to enable';
+            setCurrentFeature(null, null, null);
+        }
         
         // Display the content
         displayContent(content, fileNode.name, contentPanel, fileNode.handle);

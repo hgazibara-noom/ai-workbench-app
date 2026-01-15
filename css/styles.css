@@ -911,3 +911,149 @@ fieldset.form-group {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* ===========================
+   Jira Modal Specific Styles
+   =========================== */
+
+/* Form input styles for Jira modal */
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+}
+
+/* Jira Loading State */
+.jira-loading-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.jira-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 1s linear infinite;
+}
+
+.jira-loading-state p {
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.jira-loading-state small {
+    color: var(--text-muted);
+}
+
+/* Jira Success State */
+.jira-success-state {
+    padding: 10px 0;
+}
+
+.jira-story-link {
+    margin: 0 0 16px 0;
+}
+
+.jira-story-link a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.jira-story-link a:hover {
+    text-decoration: underline;
+}
+
+.jira-subtasks-list {
+    margin: 16px 0;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+}
+
+.jira-subtasks-list h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.jira-subtasks-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.jira-subtasks-list li {
+    padding: 4px 0;
+    font-size: 0.8125rem;
+}
+
+.jira-subtasks-list li.success {
+    color: var(--status-completed);
+}
+
+.jira-subtasks-list li.failed {
+    color: var(--status-blocked);
+}
+
+.jira-subtasks-list .error-msg {
+    font-size: 0.6875rem;
+    opacity: 0.8;
+}
+
+.jira-update-notice {
+    margin-top: 16px;
+    color: var(--status-completed);
+    font-size: 0.8125rem;
+}
+
+/* Jira Error State */
+.jira-error-state {
+    text-align: center;
+    padding: 20px;
+}
+
+.jira-error-state .error-icon {
+    font-size: 48px;
+    color: var(--status-blocked);
+    margin: 0 0 12px 0;
+}
+
+.jira-error-state .error-message {
+    color: var(--status-blocked);
+    margin: 0;
+}

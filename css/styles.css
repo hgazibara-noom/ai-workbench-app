@@ -661,3 +661,91 @@ body {
 .markdown-body del {
     color: var(--text-muted);
 }
+
+/* ===========================
+   Edit Mode Styles
+   =========================== */
+
+/* Content header actions container */
+.content-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-left: auto;
+}
+
+/* Edit button */
+.content-edit-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background-color var(--transition-fast);
+}
+
+.content-edit-btn:hover {
+    background: var(--border-color);
+}
+
+/* Done button */
+.content-done-btn {
+    margin-left: auto;
+    background: var(--accent);
+    border: none;
+    color: var(--bg-primary);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: background-color var(--transition-fast);
+}
+
+.content-done-btn:hover {
+    background: var(--accent-hover);
+}
+
+/* Save status indicator */
+.save-status {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+}
+
+.save-status.saving {
+    color: var(--accent);
+}
+
+.save-status.saved {
+    color: var(--status-completed);
+}
+
+.save-status.error {
+    color: var(--status-blocked);
+    background: rgba(243, 139, 168, 0.1);
+}
+
+/* Full-screen textarea editor */
+.content-editor {
+    width: 100%;
+    height: calc(100vh - var(--header-height) - 80px);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 6px 6px;
+    padding: var(--spacing-md);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    resize: none;
+    outline: none;
+}
+
+.content-editor:focus {
+    border-color: var(--accent);
+}

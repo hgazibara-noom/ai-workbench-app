@@ -118,7 +118,7 @@ async function handleFileClick(fileNode) {
         const content = await readFile(fileNode.handle);
         
         // Display the content
-        displayContent(content, fileNode.name, contentPanel);
+        displayContent(content, fileNode.name, contentPanel, fileNode.handle);
         
     } catch (error) {
         console.error('Failed to read file:', error);

@@ -1272,7 +1272,6 @@ fieldset.form-group {
 
 .analysis-success .success-icon {
     font-size: 3rem;
-    color: var(--status-completed);
     margin-bottom: var(--spacing-md);
 }
 
@@ -1281,15 +1280,36 @@ fieldset.form-group {
     margin-bottom: var(--spacing-md);
 }
 
-.analysis-success ul {
+.success-files {
     list-style: none;
     padding: 0;
     margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-primary);
 }
 
-.analysis-success li {
-    color: var(--text-primary);
+.success-files li {
     margin: var(--spacing-xs) 0;
+}
+
+/* Error State */
+.analysis-error {
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.analysis-error .error-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.analysis-error h4 {
+    color: var(--status-blocked);
+    margin-bottom: var(--spacing-sm);
+}
+
+.analysis-error p {
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
 }
 
 /* Loading Spinner */

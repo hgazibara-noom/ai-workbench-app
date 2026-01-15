@@ -362,6 +362,10 @@ async function cancelAnalysis() {
 function renderSuccess(files) {
     analysisTitle.textContent = '✅ Analysis Complete';
     analysisFooter.classList.add('hidden');
+    btnCancelAnalysis.classList.add('hidden');
+    
+    // Clear saved drafts
+    clearDrafts();
     
     // Remove analyzing state from any buttons
     document.querySelectorAll('.node-analyze-btn.analyzing').forEach(btn => {
@@ -372,8 +376,8 @@ function renderSuccess(files) {
         <div class="analysis-success">
             <div class="success-icon">✅</div>
             <h4>Successfully updated:</h4>
-            <ul>
-                ${files.map(f => `<li>• ${f}</li>`).join('')}
+            <ul class="success-files">
+                ${files.map(f => `<li>• ${escapeHtml(f)}</li>`).join('')}
             </ul>
             <button class="btn btn-primary" id="btn-view-updated">
                 View Updated Feature
@@ -383,8 +387,9 @@ function renderSuccess(files) {
     
     // Add click handler for view button
     document.getElementById('btn-view-updated').addEventListener('click', () => {
-        // Dispatch event to refresh tree
+        // Dispatch refresh event
         window.dispatchEvent(new CustomEvent('refresh-tree'));
+        // Hide the panel
         hideAnalysisPanel();
     });
 }
@@ -394,12 +399,25 @@ function renderSuccess(files) {
  * @param {string} message - Error message
  */
 function renderError(message) {
+    analysisTitle.textContent = '❌ Analysis Failed';
+    btnCancelAnalysis.classList.add('hidden');
+    analysisFooter.classList.add('hidden');
+    
+    // Remove analyzing state
+    document.querySelectorAll('.node-analyze-btn.analyzing').forEach(btn => {
+        btn.classList.remove('analyzing');
+    });
+    
     analysisContent.innerHTML = `
-        <div class="analysis-success">
-            <div class="success-icon" style="color: var(--status-blocked);">❌</div>
-            <h4 style="color: var(--status-blocked);">${escapeHtml(message)}</h4>
+        <div class="analysis-error">
+            <div class="error-icon">❌</div>
+            <h4>Error</h4>
+            <p>${escapeHtml(message)}</p>
+            <button class="btn btn-secondary" id="btn-close-error">Close</button>
         </div>
     `;
+    
+    document.getElementById('btn-close-error').addEventListener('click', hideAnalysisPanel);
 }
 
 /**
@@ -409,6 +427,11 @@ function renderCancelled() {
     analysisTitle.textContent = '📊 Analysis Cancelled';
     btnCancelAnalysis.classList.add('hidden');
     analysisFooter.classList.add('hidden');
+    
+    // Remove analyzing state
+    document.querySelectorAll('.node-analyze-btn.analyzing').forEach(btn => {
+        btn.classList.remove('analyzing');
+    });
     
     analysisContent.innerHTML = `
         <p class="placeholder">Analysis was cancelled.</p>

@@ -258,3 +258,103 @@ export async function writeFile(fileHandle, content) {
     await writable.write(content);
     await writable.close();
 }
+
+/**
+ * Returns the feature.md template with the feature name inserted
+ * @param {string} featureName - kebab-case feature name
+ * @returns {string} - The template content
+ */
+export function getFeatureTemplate(featureName) {
+    // Convert kebab-case to Title Case
+    const title = featureName
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    
+    return `# ${title}
+
+---
+
+## Overview
+
+*Describe the purpose and goals of this feature.*
+
+## Problem Statement
+
+*Describe the problem or gap this feature addresses.*
+
+## Proposed Solution
+
+*Describe the proposed approach to solving the problem.*
+
+## Key Requirements
+
+### Functional Requirements
+
+- [ ] *FR-1: Describe requirement*
+
+### Technical Requirements
+
+- *Describe any technical requirements or constraints*
+
+## Out of Scope
+
+- *List items that are out of scope for v1*
+
+## Success Criteria
+
+1. *Describe acceptance criteria*
+
+## Open Questions
+
+- *List any open questions or decisions needed*
+`;
+}
+
+/**
+ * Checks if a directory exists at the given path
+ * @param {FileSystemDirectoryHandle} rootHandle - Root directory handle
+ * @param {string[]} pathSegments - Array of path segments to check
+ * @returns {Promise<boolean>} - True if directory exists
+ */
+export async function checkDirectoryExists(rootHandle, pathSegments) {
+    let currentHandle = rootHandle;
+    
+    try {
+        for (const segment of pathSegments) {
+            currentHandle = await currentHandle.getDirectoryHandle(segment);
+        }
+        return true;
+    } catch (error) {
+        if (error.name === 'NotFoundError') {
+            return false;
+        }
+        throw error;
+    }
+}
+
+/**
+ * Creates a feature directory with feature.md file
+ * @param {FileSystemDirectoryHandle} rootHandle - Root directory handle
+ * @param {string[]} pathSegments - Path segments (e.g., ['features'] or ['projects', 'my-project', 'features'])
+ * @param {string} featureName - The kebab-case feature name
+ * @returns {Promise<{dirHandle: FileSystemDirectoryHandle, fileHandle: FileSystemFileHandle}>}
+ */
+export async function createFeatureDirectory(rootHandle, pathSegments, featureName) {
+    let currentHandle = rootHandle;
+    
+    // Navigate/create path segments (auto-creates missing parent folders)
+    for (const segment of pathSegments) {
+        currentHandle = await currentHandle.getDirectoryHandle(segment, { create: true });
+    }
+    
+    // Create feature folder
+    const featureHandle = await currentHandle.getDirectoryHandle(featureName, { create: true });
+    
+    // Create feature.md file
+    const fileHandle = await featureHandle.getFileHandle('feature.md', { create: true });
+    const template = getFeatureTemplate(featureName);
+    await writeFile(fileHandle, template);
+    
+    return { dirHandle: featureHandle, fileHandle };
+}

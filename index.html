@@ -14,6 +14,7 @@
             <button id="btn-select" class="btn btn-primary">Select Workspace</button>
             <button id="btn-refresh" class="btn btn-secondary" disabled>Refresh</button>
             <button id="btn-create-feature" class="btn btn-secondary" disabled>+ Feature</button>
+            <button id="btn-create-jira" class="btn btn-secondary" disabled title="Select a feature.md to enable">Create Jira</button>
         </div>
     </header>
     <main id="main">
@@ -26,6 +27,24 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="js/app.js"></script>
+
+    <!-- Create Jira Modal -->
+    <div id="jira-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="jira-modal-title">Create Jira Ticket</h2>
+                <button class="modal-close" id="jira-modal-close" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body" id="jira-modal-body">
+                <!-- Dynamic content inserted by JS -->
+            </div>
+            <footer class="modal-footer" id="jira-modal-footer">
+                <button class="btn btn-secondary" id="jira-modal-cancel">Cancel</button>
+                <button class="btn btn-primary" id="jira-modal-submit">Create Ticket</button>
+            </footer>
+        </div>
+    </div>
 
     <!-- Create Feature Modal -->
     <div id="create-feature-modal" class="modal hidden">

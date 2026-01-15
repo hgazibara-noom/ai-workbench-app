@@ -9,8 +9,9 @@ import { readFile, writeFile } from './scanner.js';
  * @param {Object} structure - The scanned tree structure
  * @param {HTMLElement} container - The container element to render into
  * @param {Function} onFileClick - Callback function when a file is clicked
+ * @param {Function} onAnalyzeClick - Callback function when analyze button is clicked on a feature folder
  */
-export function renderTree(structure, container, onFileClick) {
+export function renderTree(structure, container, onFileClick, onAnalyzeClick) {
     container.innerHTML = '';
     
     // Create root list
@@ -19,7 +20,7 @@ export function renderTree(structure, container, onFileClick) {
     
     // Render children of root (skip rendering the root directory itself)
     for (const child of structure.children) {
-        const node = renderNode(child, onFileClick);
+        const node = renderNode(child, onFileClick, onAnalyzeClick);
         ul.appendChild(node);
     }
     
@@ -30,14 +31,15 @@ export function renderTree(structure, container, onFileClick) {
  * Renders a single tree node (directory or file)
  * @param {Object} node - The node to render
  * @param {Function} onFileClick - Callback for file clicks
+ * @param {Function} onAnalyzeClick - Callback for analyze button clicks
  * @returns {HTMLElement} - The rendered list item element
  */
-function renderNode(node, onFileClick) {
+function renderNode(node, onFileClick, onAnalyzeClick) {
     const li = document.createElement('li');
     li.className = `tree-node tree-${node.type}`;
     
     if (node.type === 'directory') {
-        return renderDirectoryNode(li, node, onFileClick);
+        return renderDirectoryNode(li, node, onFileClick, onAnalyzeClick);
     } else {
         return renderFileNode(li, node, onFileClick);
     }
@@ -48,9 +50,10 @@ function renderNode(node, onFileClick) {
  * @param {HTMLElement} li - The list item element
  * @param {Object} node - The directory node data
  * @param {Function} onFileClick - Callback for file clicks
+ * @param {Function} onAnalyzeClick - Callback for analyze button clicks
  * @returns {HTMLElement} - The rendered list item
  */
-function renderDirectoryNode(li, node, onFileClick) {
+function renderDirectoryNode(li, node, onFileClick, onAnalyzeClick) {
     // Create the node row (toggle, icon, name, optional status badge)
     const row = document.createElement('div');
     row.className = 'node-row';
@@ -79,6 +82,21 @@ function renderDirectoryNode(li, node, onFileClick) {
         addStatusBadgeAsync(row, node);
     }
     
+    // Check if this is a feature folder and add analyze button
+    if (isFeatureFolderNode(node)) {
+        const analyzeBtn = document.createElement('button');
+        analyzeBtn.className = 'node-analyze-btn';
+        analyzeBtn.innerHTML = '🔍';
+        analyzeBtn.title = 'Analyze feature';
+        
+        analyzeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (onAnalyzeClick) onAnalyzeClick(node);
+        });
+        
+        row.appendChild(analyzeBtn);
+    }
+    
     li.appendChild(row);
     
     // Create children container
@@ -87,7 +105,7 @@ function renderDirectoryNode(li, node, onFileClick) {
     
     // Render all child nodes
     for (const child of node.children) {
-        childrenUl.appendChild(renderNode(child, onFileClick));
+        childrenUl.appendChild(renderNode(child, onFileClick, onAnalyzeClick));
     }
     
     li.appendChild(childrenUl);
@@ -168,6 +186,31 @@ function isAgentFolderNode(node) {
         child.type === 'file' && 
         (child.name === 'task-instructions.md' || child.name === 'status.md')
     );
+}
+
+/**
+ * Checks if a node is a feature folder
+ * Feature folders contain feature.md but are NOT agent folders
+ * @param {Object} node - The directory node
+ * @returns {boolean} - True if this is a feature folder
+ */
+function isFeatureFolderNode(node) {
+    if (node.type !== 'directory' || !node.children) {
+        return false;
+    }
+    
+    // Must contain feature.md
+    const hasFeatureMd = node.children.some(child => 
+        child.type === 'file' && child.name === 'feature.md'
+    );
+    
+    // Must NOT be an agent folder (those have task-instructions.md)
+    if (!hasFeatureMd) {
+        return false;
+    }
+    
+    // Exclude agent folders
+    return !isAgentFolderNode(node);
 }
 
 /**

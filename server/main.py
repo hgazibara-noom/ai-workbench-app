@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
-from .routers import jira
+from .routers import jira, analyze
 
 app = FastAPI(title="AI Workbench API")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(jira.router, prefix="/api/jira", tags=["jira"])
+app.include_router(analyze.router, prefix="/api/analyze", tags=["analyze"])
 
 # Serve static files (the existing frontend)
 # Mount at root AFTER API routes so API takes precedence
